@@ -1,5 +1,5 @@
 # nest-wourkout-api
-BE for Workout Journal project
+BE for Reservation System project
 
 ## Local setup
 
