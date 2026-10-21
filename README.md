@@ -6,9 +6,27 @@ BE for Reservation System project
 `nest-api` is a NestJS 11 TypeScript application at the repository root. Use Node.js 22 LTS and npm 10 or newer (validated with Node.js 22.22.2 and npm 10.9.7).
 
 - Install the locked dependencies: `npm ci`.
+- Create your local config: `cp .env.example .env` and adjust values (see [Environment variables](#environment-variables)).
 - Start with automatic reload: `npm run start:dev`.
 - Open <http://localhost:3000/>; the scaffold responds with `Hello World!`.
 - Set `PORT` to use another port, for example `PORT=3001 npm run start:dev`.
+
+## Environment variables
+
+Configuration is loaded with `@nestjs/config` from real environment variables, then `.env.local`, then `.env` (earlier sources win). `.env*` files are git-ignored except `.env.example`. All values are validated at startup in `src/config/env.validation.ts`; the app refuses to start and lists every problem if something is missing or malformed.
+
+| Variable | Required | Default | Notes |
+| --- | --- | --- | --- |
+| `NODE_ENV` | no | `development` | `development`, `test`, `staging` or `production` |
+| `PORT` | no | `3000` | 1–65535 |
+| `DEFAULT_TIMEZONE` | no | `Europe/Zurich` | Default IANA time zone for new tenants |
+| `DATABASE_URL` | yes | | `postgres://` or `postgresql://` connection string |
+| `JWT_ACCESS_SECRET` | yes | | At least 32 characters |
+| `JWT_ACCESS_TTL` | no | `15m` | Duration: `900s`, `15m`, `12h`, `7d` |
+| `JWT_REFRESH_SECRET` | yes | | At least 32 characters, must differ from the access secret |
+| `JWT_REFRESH_TTL` | no | `7d` | Duration: `900s`, `15m`, `12h`, `7d` |
+
+In code, inject typed namespaces instead of reading `process.env`, for example `@Inject(appConfig.KEY) private readonly app: ConfigType<typeof appConfig>`. Namespaces: `app`, `database`, `auth` (see `src/config/`). E2E tests get deterministic values from `test/setup-env.ts`.
 
 ## Build and run
 
