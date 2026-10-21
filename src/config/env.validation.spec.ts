@@ -17,8 +17,37 @@ describe('validate (environment)', () => {
     expect(config.JWT_REFRESH_TTL).toBe('7d');
   });
 
-  it('converts PORT from string to number', () => {
-    expect(validate({ ...validEnv, PORT: '8080' }).PORT).toBe(8080);
+  it('drops variables that are not declared', () => {
+    expect(validate({ ...validEnv, UNRELATED: 'x' })).not.toHaveProperty(
+      'UNRELATED',
+    );
+  });
+
+  it.each(['0', '8080', '65535', 8080])('accepts PORT %p', (port) => {
+    expect(validate({ ...validEnv, PORT: port }).PORT).toBe(Number(port));
+  });
+
+  it.each(['', ' ', '-1', '65536', '3000.5', '3000abc', '1e3', '0x10', 1.5])(
+    'rejects PORT %p',
+    (port) => {
+      expect(() => validate({ ...validEnv, PORT: port })).toThrow(
+        'PORT must be an integer between 0 and 65535',
+      );
+    },
+  );
+
+  it('never includes supplied values in validation errors', () => {
+    const secret = 'synthetic-private-value';
+    for (const key of [
+      'DATABASE_URL',
+      'JWT_ACCESS_SECRET',
+      'NODE_ENV',
+      'PORT',
+    ]) {
+      expect(() => validate({ ...validEnv, [key]: secret })).not.toThrow(
+        secret,
+      );
+    }
   });
 
   it.each([
